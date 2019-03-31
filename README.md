@@ -1,6 +1,6 @@
 # photo-gallery-like
 
-Management of likes
+Like component
 
 This component requires the `photo-gallery-common` library. Make sure you build that library first.
 
