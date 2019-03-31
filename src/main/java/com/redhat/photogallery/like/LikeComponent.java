@@ -35,31 +35,31 @@ public class LikeComponent implements ServerComponent {
 	}
 
 	private void addLikes(RoutingContext rc) {
-		LikesItem addItem;
+		LikesItem item;
 		try {
-			addItem = rc.getBodyAsJson().mapTo(LikesItem.class);
+			item = rc.getBodyAsJson().mapTo(LikesItem.class);
 		} catch (Exception e) {
 			LOG.error("Failed parse item {}", rc.getBodyAsString(), e);
-			throw e;
+			rc.response().setStatusCode(400).end();
+			return;
 		}
-		LikesItem savedItem = dataStore.getItem(addItem.getId());
+
+		LikesItem savedItem = dataStore.getItem(item.getId());
 		if (savedItem == null) {
-			dataStore.setItem(addItem);
-			savedItem = addItem;
+			dataStore.putItem(item);
+			savedItem = item;
 		}
 		else {
-			int likes = savedItem.getLikes() + addItem.getLikes();
+			int likes = savedItem.getLikes() + item.getLikes();
 			savedItem.setLikes(likes);
+			dataStore.putItem(savedItem);
 		}
-		rc.response().end();
 		LOG.info("Updated in data store {}", savedItem);
-		try {
-			topic.write(JsonObject.mapFrom(addItem));
-		} catch (Exception e) {
-			LOG.error("Failed publish item {}", addItem, e);
-			throw e;
-		}
-		LOG.info("Published {} update on topic {}", addItem, topic.address());
+
+		topic.write(JsonObject.mapFrom(item));
+		LOG.info("Published {} update on topic {}", item, topic.address());
+
+		rc.response().end();
 	}
 
 	private void readAllLikes(RoutingContext rc) {
