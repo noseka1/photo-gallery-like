@@ -18,56 +18,56 @@ import io.vertx.reactivex.ext.web.handler.BodyHandler;
 
 public class LikeComponent implements ServerComponent {
 
-	private static final Logger LOG = LoggerFactory.getLogger(LikeComponent.class);
+    private static final Logger LOG = LoggerFactory.getLogger(LikeComponent.class);
 
-	private DataStore<LikesItem> dataStore = new DataStore<>();
+    private DataStore<LikesItem> dataStore = new DataStore<>();
 
-	MessageProducer<JsonObject> topic;
+    MessageProducer<JsonObject> topic;
 
-	@Override
-	public void registerRoutes(Router router) {
-		router.post("/likes").handler(BodyHandler.create()).handler(this::addLikes);
-		router.get("/likes").handler(this::readAllLikes);
-	}
+    @Override
+    public void registerRoutes(Router router) {
+        router.post("/likes").handler(BodyHandler.create()).handler(this::addLikes);
+        router.get("/likes").handler(this::readAllLikes);
+    }
 
-	@Override
-	public void injectEventBus(EventBus eventBus) {
-		topic = eventBus.<JsonObject>publisher(Constants.LIKES_TOPIC_NAME);
-	}
+    @Override
+    public void injectEventBus(EventBus eventBus) {
+        topic = eventBus.<JsonObject>publisher(Constants.LIKES_TOPIC_NAME);
+    }
 
-	private void addLikes(RoutingContext rc) {
-		LikesItem item;
-		try {
-			item = rc.getBodyAsJson().mapTo(LikesItem.class);
-		} catch (Exception e) {
-			LOG.error("Failed parse item {}", rc.getBodyAsString(), e);
-			rc.response().setStatusCode(400).end();
-			return;
-		}
+    private void addLikes(RoutingContext rc) {
+        LikesItem item;
+        try {
+            item = rc.getBodyAsJson().mapTo(LikesItem.class);
+        } catch (Exception e) {
+            LOG.error("Failed parse item {}", rc.getBodyAsString(), e);
+            rc.response().setStatusCode(400).end();
+            return;
+        }
 
-		LikesItem savedItem = dataStore.getItem(item.getId());
-		if (savedItem == null) {
-			dataStore.putItem(item);
-			savedItem = item;
-		}
-		else {
-			int likes = savedItem.getLikes() + item.getLikes();
-			savedItem.setLikes(likes);
-			dataStore.putItem(savedItem);
-		}
-		LOG.info("Updated in data store {}", savedItem);
+        LikesItem savedItem = dataStore.getItem(item.getId());
+        if (savedItem == null) {
+            dataStore.putItem(item);
+            savedItem = item;
+        }
+        else {
+            int likes = savedItem.getLikes() + item.getLikes();
+            savedItem.setLikes(likes);
+            dataStore.putItem(savedItem);
+        }
+        LOG.info("Updated in data store {}", savedItem);
 
-		topic.write(JsonObject.mapFrom(item));
-		LOG.info("Published {} update on topic {}", item, topic.address());
+        topic.write(JsonObject.mapFrom(item));
+        LOG.info("Published {} update on topic {}", item, topic.address());
 
-		rc.response().end();
-	}
+        rc.response().end();
+    }
 
-	private void readAllLikes(RoutingContext rc) {
-		HttpServerResponse response = rc.response();
-		response.putHeader("content-type", "application/json");
-		response.end(Json.encodePrettily(dataStore.getAllItems()));
-		LOG.info("Returned all {} items", dataStore.getAllItems().size());
-	}
+    private void readAllLikes(RoutingContext rc) {
+        HttpServerResponse response = rc.response();
+        response.putHeader("content-type", "application/json");
+        response.end(Json.encodePrettily(dataStore.getAllItems()));
+        LOG.info("Returned all {} items", dataStore.getAllItems().size());
+    }
 
 }
