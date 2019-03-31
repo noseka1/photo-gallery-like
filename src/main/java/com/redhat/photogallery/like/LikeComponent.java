@@ -1,9 +1,9 @@
 package com.redhat.photogallery.like;
 
-import com.redhat.photogallery.common.ServerComponent;
-import com.redhat.photogallery.common.data.LikesItem;
 import com.redhat.photogallery.common.Constants;
-import com.redhat.photogallery.common.DataStore;
+import com.redhat.photogallery.common.ServerComponent;
+import com.redhat.photogallery.common.data.DataStore;
+import com.redhat.photogallery.common.data.LikesItem;
 
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
