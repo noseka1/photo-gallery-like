@@ -13,7 +13,7 @@ mvn clean install package
 You can run this component as a standalone service using:
 
 ```
-java -jar target/photo-gallery-like-1.0-SNAPSHOT-fat.jar
+java -jar target/photo-gallery-like-1.0-SNAPSHOT-runner.jar
 ```
 
 After the service starts up you can test it using curl.
@@ -21,8 +21,8 @@ After the service starts up you can test it using curl.
 To add some likes to the photo with ID 00cb8ab367bf4f8486e58cbf905792e0:
 
 ```
-curl -v -X POST --data '{"id":"00cb8ab367bf4f8486e58cbf905792e0","likes":"5"}' localhost:8081/likes
-curl -v -X POST --data '{"id":"00cb8ab367bf4f8486e58cbf905792e0","likes":"2"}' localhost:8081/likes
+curl -v -X POST -H 'Content-Type: application/json' --data '{"id":"00cb8ab367bf4f8486e58cbf905792e0","likes":"5"}' localhost:8081/likes
+curl -v -X POST -H 'Content-Type: application/json' --data '{"id":"00cb8ab367bf4f8486e58cbf905792e0","likes":"2"}' localhost:8081/likes
 
 ```
 

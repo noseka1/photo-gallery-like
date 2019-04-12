@@ -1,22 +1,30 @@
 package com.redhat.photogallery.like;
 
+import java.util.List;
+
+import javax.inject.Inject;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.GenericEntity;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.redhat.photogallery.common.Constants;
-import com.redhat.photogallery.common.ServerComponent;
 import com.redhat.photogallery.common.data.DataStore;
 import com.redhat.photogallery.common.data.LikesItem;
 
-import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import io.vertx.reactivex.core.eventbus.EventBus;
 import io.vertx.reactivex.core.eventbus.MessageProducer;
-import io.vertx.reactivex.core.http.HttpServerResponse;
-import io.vertx.reactivex.ext.web.Router;
-import io.vertx.reactivex.ext.web.RoutingContext;
-import io.vertx.reactivex.ext.web.handler.BodyHandler;
 
-public class LikeComponent implements ServerComponent {
+@Path("/likes")
+public class LikeComponent {
 
     private static final Logger LOG = LoggerFactory.getLogger(LikeComponent.class);
 
@@ -24,27 +32,15 @@ public class LikeComponent implements ServerComponent {
 
     MessageProducer<JsonObject> topic;
 
-    @Override
-    public void registerRoutes(Router router) {
-        router.post("/likes").handler(BodyHandler.create()).handler(this::addLikes);
-        router.get("/likes").handler(this::readAllLikes);
-    }
 
-    @Override
+    @Inject
     public void injectEventBus(EventBus eventBus) {
         topic = eventBus.<JsonObject>publisher(Constants.LIKES_TOPIC_NAME);
     }
 
-    private void addLikes(RoutingContext rc) {
-        LikesItem item;
-        try {
-            item = rc.getBodyAsJson().mapTo(LikesItem.class);
-        } catch (Exception e) {
-            LOG.error("Failed parse item {}", rc.getBodyAsString(), e);
-            rc.response().setStatusCode(400).end();
-            return;
-        }
-
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void addLikes(LikesItem item) {
         LikesItem savedItem = dataStore.getItem(item.getId());
         if (savedItem == null) {
             dataStore.putItem(item);
@@ -59,15 +55,14 @@ public class LikeComponent implements ServerComponent {
 
         topic.write(JsonObject.mapFrom(item));
         LOG.info("Published {} update on topic {}", item, topic.address());
-
-        rc.response().end();
     }
 
-    private void readAllLikes(RoutingContext rc) {
-        HttpServerResponse response = rc.response();
-        response.putHeader("content-type", "application/json");
-        response.end(Json.encodePrettily(dataStore.getAllItems()));
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response readAllLikes() {
+        List<LikesItem> items = (dataStore.getAllItems());
         LOG.info("Returned all {} items", dataStore.getAllItems().size());
+        return Response.ok(new GenericEntity<List<LikesItem>>(items){}).build();
     }
 
 }
