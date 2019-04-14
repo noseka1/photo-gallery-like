@@ -65,6 +65,7 @@ public class LikeResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response readAllLikes() {
         Query query = entityManager.createQuery("FROM LikesItem");
+        @SuppressWarnings("unchecked")
         List<LikesItem> items = query.getResultList();
         LOG.info("Returned all {} items", items.size());
         return Response.ok(new GenericEntity<List<LikesItem>>(items){}).build();
