@@ -52,7 +52,6 @@ public class LikeResource {
         else {
             int likes = savedItem.likes + item.likes;
             savedItem.likes = likes;
-            savedItem.persist();
         }
         LOG.info("Updated in data store {}", savedItem);
 
