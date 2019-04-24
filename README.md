@@ -43,7 +43,7 @@ To retrieve likes received by all photos:
 curl -v localhost:8081/likes
 ```
 
-## Deploying to Minishift
+## Deploying to OpenShift
 
 Create a new project if it doesn't exist:
 
@@ -62,26 +62,28 @@ oc new-app \
 --param POSTGRESQL_DATABASE=likedb
 ```
 
-Prepare to connect to the Docker daemon running within the Minishift virtual machine:
+Define a binary build (this will reuse the Java artifacts will built previously):
 
 ```
-eval $(minishift docker-env)
+oc new-build \
+--name like \
+--binary \
+--strategy docker
 ```
 
-Build the application image:
+Correct the Dockerfile location in the build config:
 
 ```
-docker build \
--f src/main/docker/Dockerfile.jvm \
--t 172.30.1.1:5000/photo-gallery-distributed/like \
-.
+oc patch bc like -p '{"spec":{"strategy":{"dockerStrategy":{"dockerfilePath":"src/main/docker/Dockerfile.jvm"}}}}'
 ```
 
-Push the application image into the Minishift's integrated Docker registry:
+Start the binary build:
 
 ```
-docker login -u `oc whoami` -p `oc whoami -t` 172.30.1.1:5000
-docker push 172.30.1.1:5000/photo-gallery-distributed/like
+oc start-build \
+like \
+--from-dir . \
+--follow
 ```
 
 Deploy the application:
