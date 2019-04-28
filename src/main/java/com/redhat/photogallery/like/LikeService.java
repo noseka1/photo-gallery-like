@@ -44,7 +44,7 @@ public class LikeService {
     @Consumes(MediaType.APPLICATION_JSON)
     @Transactional
     public void addLikes(LikesItem item) {
-        LikesItem savedItem = LikesItem.findById(item.id);
+        LikesItem savedItem = entityManager.find(LikesItem.class, item.id);
         if (savedItem == null) {
             item.persist();
             savedItem = item;
