@@ -19,7 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.redhat.photogallery.common.Constants;
-import com.redhat.photogallery.common.data.LikesMessage;
+import com.redhat.photogallery.common.data.LikesAddedMessage;
 
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.eventbus.EventBus;
@@ -55,9 +55,9 @@ public class LikeResource {
         }
         LOG.info("Updated in data store {}", savedItem);
 
-        LikesMessage likesMessage = createLikesMessage(savedItem);
-        topic.write(JsonObject.mapFrom(likesMessage));
-        LOG.info("Published {} update on topic {}", likesMessage, topic.address());
+        LikesAddedMessage message = createLikesAddedMessage(savedItem);
+        topic.write(JsonObject.mapFrom(message));
+        LOG.info("Published {} update on topic {}", message, topic.address());
     }
 
     @GET
@@ -70,8 +70,8 @@ public class LikeResource {
         return Response.ok(new GenericEntity<List<LikesItem>>(items){}).build();
     }
 
-    private LikesMessage createLikesMessage(LikesItem item) {
-        LikesMessage msg = new LikesMessage();
+    private LikesAddedMessage createLikesAddedMessage(LikesItem item) {
+        LikesAddedMessage msg = new LikesAddedMessage();
         msg.setId(item.id);
         msg.setLikes(item.likes);
         return msg;
