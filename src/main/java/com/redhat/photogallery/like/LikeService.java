@@ -26,9 +26,9 @@ import io.vertx.reactivex.core.eventbus.EventBus;
 import io.vertx.reactivex.core.eventbus.MessageProducer;
 
 @Path("/likes")
-public class LikeResource {
+public class LikeService {
 
-    private static final Logger LOG = LoggerFactory.getLogger(LikeResource.class);
+    private static final Logger LOG = LoggerFactory.getLogger(LikeService.class);
 
     private MessageProducer<JsonObject> topic;
 
