@@ -4,7 +4,6 @@ import java.util.List;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
-import javax.persistence.Query;
 import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -33,9 +32,6 @@ public class LikeService {
     private MessageProducer<JsonObject> topic;
 
     @Inject
-    EntityManager entityManager;
-
-    @Inject
     public void injectEventBus(EventBus eventBus) {
         topic = eventBus.<JsonObject>publisher(Constants.LIKES_TOPIC_NAME);
     }
@@ -44,7 +40,7 @@ public class LikeService {
     @Consumes(MediaType.APPLICATION_JSON)
     @Transactional
     public void addLikes(LikesItem item) {
-        LikesItem savedItem = entityManager.find(LikesItem.class, item.id);
+        LikesItem savedItem = LikesItem.findById(item.id);
         if (savedItem == null) {
             item.persist();
             savedItem = item;
@@ -63,9 +59,7 @@ public class LikeService {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response readAllLikes() {
-        Query query = entityManager.createQuery("FROM LikesItem");
-        @SuppressWarnings("unchecked")
-        List<LikesItem> items = query.getResultList();
+        List<LikesItem> items = LikesItem.listAll();
         LOG.info("Returned all {} items", items.size());
         return Response.ok(new GenericEntity<List<LikesItem>>(items){}).build();
     }
